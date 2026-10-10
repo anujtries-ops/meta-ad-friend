@@ -6,3 +6,5 @@
 - [x] Improve mobile layouts and official-style button colors.
 - [x] Add four sample notifications and Engagement / Website / Subscribe campaign displays.
 - [x] Check official public terminology and verify randomized demo results and mobile interactions.
+- [ ] Fix clipped billing rows and remove unnecessary gaps across shared screens.
+- [ ] Verify screen alignment and mobile overflow after spacing updates.

@@ -159,4 +159,8 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--primary); outli
  .campaign-detail-header h1 { font-size:18px; }
  .campaign-detail-header > button { flex-shrink:0; }
 }
+@media (max-width:360px) {
+ .campaign-stat-grid .metric-value, .meta-metrics strong { font-size:15px; white-space:nowrap; }
+ .campaign-stat-grid { font-size:12px; }
+}
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation:none !important; transition:none !important; } }

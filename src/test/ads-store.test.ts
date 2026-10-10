@@ -2,7 +2,7 @@ import { describe, expect, it, afterEach } from "vitest";
 import { actions, useAds } from "@/lib/ads-store";
 import { renderHook, act } from "@testing-library/react";
 
-afterEach(() => actions.reset());
+afterEach(() => { act(() => actions.reset()); });
 
 describe("Campaign image previews", () => {
   it("preserves the uploaded creative when creating a campaign", () => {

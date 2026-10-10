@@ -14,7 +14,7 @@ export function generateDemoMetrics(random: () => number = Math.random) {
   return { results, clicks, reach, impressions, spent };
 }
 
-export function campaignResult(c: { objective: string; conversionLocation?: string; conversionEvent?: string }, fallback: string) {
+export function campaignResult(c: { objective: string; conversionLocation?: string | undefined; conversionEvent?: string | undefined }, fallback: string) {
   return c.conversionLocation === "website" && c.conversionEvent === "Subscribe" ? "Website subscribe" : fallback;
 }
 

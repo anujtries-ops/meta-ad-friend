@@ -50,23 +50,23 @@
   --card-foreground: oklch(0.2 0.01 260);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.2 0.01 260);
-  --primary: oklch(0.56 0.23 262);
+  --primary: oklch(0.556 0.139 245.5);
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.95 0.005 260);
   --secondary-foreground: oklch(0.25 0.01 260);
   --muted: oklch(0.955 0.004 260);
   --muted-foreground: oklch(0.5 0.01 260);
   --accent: oklch(0.94 0.03 250);
-  --accent-foreground: oklch(0.49 0.125 240);
+  --accent-foreground: oklch(0.51 0.124 241);
   --destructive: oklch(0.58 0.22 27);
   --destructive-foreground: oklch(1 0 0);
   --border: oklch(0.9 0.005 260);
   --input: oklch(0.88 0.005 260);
-  --ring: oklch(0.56 0.23 262);
+  --ring: var(--primary);
   --success: oklch(0.6 0.16 150);
   --success-foreground: oklch(1 0 0);
   --warning: oklch(0.75 0.16 75);
-  --tint: oklch(0.43 0.12 167);
+  --tint: oklch(0.463 0.096 167.8);
   --obj-engagement: oklch(0.65 0.14 235);
   --obj-awareness: oklch(0.65 0.1 180);
   --obj-traffic: oklch(0.8 0.15 85);
@@ -105,7 +105,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--primary); outli
 .meta-nav a { flex: 1; display: flex; align-items: center; justify-content: center; color: var(--foreground); }
 .meta-nav a[data-status="active"] svg { fill: var(--foreground); }
 .meta-nav svg { width: 28px; height: 28px; stroke-width: 1.8; }
-.meta-account-header { display: flex; align-items: center; gap: 16px; padding: 32px 28px 8px; }
+.meta-account-header { display: grid; grid-template-columns: 48px minmax(0,1fr) 44px 48px; align-items: center; gap: 16px; padding: 32px 28px 8px; }
 .meta-filter-bar { display: flex; gap: 10px; padding: 20px 28px; }
 .meta-filter-bar > button { height: 46px; padding: 0 18px; font-size: 17px; }
 .campaign-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 18px; padding: 0 28px 24px; }
@@ -127,15 +127,40 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--primary); outli
 .funds-success svg { width:72px; height:72px; color:var(--success); stroke-width:2; margin-bottom:24px; }
 .funds-footer { position:fixed; bottom:0; left:50%; transform:translateX(-50%); max-width:560px; width:100%; padding:20px 24px 28px; background:var(--card); }
 .funds-footer button { width:100%; height:52px; font-size:19px; border-radius:8px; }
+.campaign-stat-grid { display:grid; grid-template-columns: .95fr 1.12fr 1fr; }
+.campaign-stat-grid > div { min-width:0; }
+.campaign-stat-grid p { overflow-wrap:anywhere; }
+.campaign-stat-grid .metric-value { font-size:20px; line-height:1.4; font-weight:600; font-variant-numeric:tabular-nums; }
+.meta-metrics > div { min-width:0; }
+.meta-metrics strong { overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
+.meta-nav { height:calc(76px + env(safe-area-inset-bottom)); }
+.meta-content { padding-bottom:calc(100px + env(safe-area-inset-bottom)); }
+.demo-results-note { color:var(--muted-foreground); font-size:12px; }
 @media (max-width: 640px) {
- .meta-account-header { padding: 25px 20px 4px; gap:12px; }
- .meta-filter-bar { padding: 18px 20px; }
- .meta-filter-bar > button { height:48px; }
- .campaign-grid { grid-template-columns: minmax(0,1fr); padding:0 20px 20px; gap:16px; }
- .meta-recommendation { margin:4px 20px 10px; padding:20px; }
- .meta-section-title { padding:20px; }
- .meta-metrics { padding:18px; }
- .meta-metrics strong { font-size:20px; }
+ .meta-account-header { padding: 22px 16px 4px; gap:8px; grid-template-columns:44px minmax(0,1fr) 36px 44px; }
+ .meta-account-header > a:first-child { width:44px; height:44px; }
+ .meta-account-header > button:last-child { width:44px; height:44px; }
+ .meta-account-header > a p:first-child { font-size:20px; }
+ .meta-filter-bar { padding: 18px 16px; display:grid; grid-template-columns:44px minmax(0,1fr) minmax(0,1fr); }
+ .meta-filter-bar button { height:44px; min-width:0; padding:0 10px; font-size:15px; }
+ .campaign-grid { grid-template-columns: minmax(0,1fr); padding:0 16px 20px; gap:16px; }
+ .meta-recommendation { margin:4px 16px 10px; padding:16px; }
+ .meta-section-title { padding:16px; gap:8px; }
+ .meta-section-title h2 { min-width:0; font-size:24px; }
+ .meta-metrics { padding:16px 12px; grid-template-columns:.95fr 1.12fr 1fr; }
+ .meta-metrics > div + div { padding-left:8px; margin-left:4px; }
+ .meta-metrics strong, .campaign-stat-grid .metric-value { font-size:18px; }
  .meta-metrics span { font-size:13px; }
+ .meta-range { padding:8px; gap:3px; }
+ .meta-range button { min-width:0; padding:10px 8px; font-size:14px; }
+ .meta-range svg { flex-shrink:0; }
+ .campaign-detail-body { padding-left:16px; padding-right:16px; }
+ .campaign-detail-header { padding-left:12px; padding-right:12px; gap:8px; }
+ .campaign-detail-header h1 { font-size:18px; }
+ .campaign-detail-header > button { flex-shrink:0; }
+}
+@media (max-width:360px) {
+ .campaign-stat-grid .metric-value, .meta-metrics strong { font-size:15px; white-space:nowrap; }
+ .campaign-stat-grid { font-size:12px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation:none !important; transition:none !important; } }

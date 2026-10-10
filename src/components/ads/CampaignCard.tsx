@@ -4,6 +4,8 @@ import { toast } from "sonner";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { actions, money, num, OBJECTIVES, STATUS_LABEL, type Campaign } from "@/lib/ads-store";
 import { Card, ObjectiveIcon } from "./Shell";
+import { Button } from "@/components/ui/button";
+import { campaignResult } from "@/lib/ads-demo";
 
 export const statusColor = (s: Campaign["status"]) =>
   s === "active" ? "text-success" : s === "in_review" ? "text-warning" : "text-muted-foreground";
@@ -15,8 +17,9 @@ export function CampaignCard({ c, currency, factor }: { c: Campaign; currency: "
   const results = Math.round(c.results * factor);
   const spent = c.spent * factor;
   const cpr = results ? spent / results : 0;
+  const resultLabel = campaignResult(c, OBJECTIVES[c.objective].result);
   return (
-    <Card className="p-5">
+    <Card className="min-w-0 p-4 sm:p-5">
       <div className="mb-3 flex items-center gap-1 text-xs font-semibold"><BadgePlus className="h-3.5 w-3.5" />New</div>
       <div className="flex items-start gap-3">
         <div className="relative">
@@ -28,7 +31,7 @@ export function CampaignCard({ c, currency, factor }: { c: Campaign; currency: "
           <p className="text-sm"><span className={statusColor(c.status)}>{STATUS_LABEL[c.status]}</span><span className="text-muted-foreground"> • {OBJECTIVES[c.objective].label}</span></p>
         </Link>
         <DropdownMenu>
-          <DropdownMenuTrigger aria-label="Campaign options" className="rounded-full p-1 hover:bg-muted"><MoreVertical className="h-5 w-5" /></DropdownMenuTrigger>
+          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" aria-label="Campaign options" className="h-9 w-8 shrink-0 rounded-full p-0"><MoreVertical className="h-5 w-5" /></Button></DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => nav({ to: "/campaign/$id", params: { id: c.id } })}>View insights</DropdownMenuItem>
             <DropdownMenuItem onClick={() => nav({ to: "/create/$objective", params: { objective: c.objective }, search: { edit: c.id } })}>Edit</DropdownMenuItem>
@@ -43,10 +46,10 @@ export function CampaignCard({ c, currency, factor }: { c: Campaign; currency: "
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <div className="mt-3 grid grid-cols-3 divide-x text-sm">
-        <div className="pr-2"><p className="text-xl font-semibold">{num(results)}</p><p className="text-muted-foreground leading-tight">{OBJECTIVES[c.objective].result}</p></div>
-        <div className="px-2"><p className="text-xl font-semibold">{money(cpr, currency)}</p><p className="text-muted-foreground leading-tight">Cost per {OBJECTIVES[c.objective].result.replace(/s$/, "")}</p></div>
-        <div className="pl-2"><p className="text-xl font-semibold">{money(spent, currency)}</p><p className="text-muted-foreground">Spent</p></div>
+      <div className="campaign-stat-grid mt-3 divide-x text-[13px] sm:text-sm">
+        <div className="pr-2"><p className="metric-value">{num(results)}</p><p className="text-muted-foreground leading-tight">{resultLabel}</p></div>
+        <div className="px-2"><p className="metric-value">{money(cpr, currency)}</p><p className="text-muted-foreground leading-tight">Cost per {resultLabel.replace(/s$/, "")}</p></div>
+        <div className="pl-2"><p className="metric-value">{money(spent, currency)}</p><p className="text-muted-foreground">Spent</p></div>
       </div>
       {c.recommendations > 0 && (
         <Link to="/recommendations" className="mt-3 flex items-center gap-2 rounded-md bg-accent px-3 py-2 text-sm font-medium text-accent-foreground">

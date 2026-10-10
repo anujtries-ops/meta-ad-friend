@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Copy, Pencil, Trash2, ArrowLeft, MoreVertical, CalendarDays, ChevronDown, ChevronUp, CreditCard } from "lucide-react";
+import { Copy, Pencil, Trash2, ArrowLeft, RefreshCw, Globe, CalendarDays, ChevronDown, ChevronUp, CreditCard } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
@@ -9,6 +9,7 @@ import { AdPreview } from "@/components/ads/AdPreview";
 import { statusColor } from "@/components/ads/CampaignCard";
 import { Card, Frame, ObjectiveIcon, PageHeader } from "@/components/ads/Shell";
 import { actions, money, num, OBJECTIVES, STATUS_LABEL, useAds, useStoreReady } from "@/lib/ads-store";
+import { campaignResult, rangeMetrics } from "@/lib/ads-demo";
 
 export const Route = createFileRoute("/campaign/$id")({
   head: () => ({
@@ -43,40 +44,44 @@ function Detail() {
   );
   const cur = acct.currency;
   const o = OBJECTIVES[c.objective];
+  const resultLabel = campaignResult(c, o.result);
+  const metrics = rangeMetrics(c, range);
   const stats: [string, string][] = [
-    [o.result, num(c.results)],
-    ["Cost per result", money(c.results ? c.spent / c.results : 0, cur)],
-    ["Amount spent", money(c.spent, cur)],
-    ["Reach", num(c.reach)],
-    ["Impressions", num(c.impressions)],
-    ["Link clicks", num(c.clicks)],
-    ["CTR", `${c.impressions ? ((c.clicks / c.impressions) * 100).toFixed(2) : "0.00"}%`],
-    ["CPM", money(c.impressions ? (c.spent / c.impressions) * 1000 : 0, cur)],
-    ["Frequency", c.reach ? (c.impressions / c.reach).toFixed(2) : "0.00"],
+    [resultLabel, num(metrics.results)],
+    ["Cost per result", money(metrics.results ? metrics.spent / metrics.results : 0, cur)],
+    ["Amount spent", money(metrics.spent, cur)],
+    ["Reach", num(metrics.reach)],
+    ["Impressions", num(metrics.impressions)],
+    ["Link clicks", num(metrics.clicks)],
+    ["CTR", `${metrics.impressions ? ((metrics.clicks / metrics.impressions) * 100).toFixed(2) : "0.00"}%`],
+    ["CPM", money(metrics.impressions ? (metrics.spent / metrics.impressions) * 1000 : 0, cur)],
+    ["Frequency", metrics.reach ? (metrics.impressions / metrics.reach).toFixed(2) : "0.00"],
   ];
   const pct = c.budgetType === "lifetime" ? Math.min(100, (c.spent / c.budget) * 100) : null;
 
   return (
     <Frame>
-      <div className="flex items-center gap-3 px-5 pt-7">
+      <div className="campaign-detail-header flex items-center gap-3 px-5 pt-7">
         <Button variant="ghost" size="icon" aria-label="Back to campaigns" onClick={() => nav({to:"/"})}><ArrowLeft /></Button>
         <div className="relative shrink-0">{c.ad.image ? <img src={c.ad.image} alt={`${c.name} creative`} className="campaign-thumb" /> : <ObjectiveIcon k={c.objective} />}<span className={`absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-[3px] border-background ${c.status==="active"?"bg-success":"bg-muted-foreground"}`} /></div>
         <div className="min-w-0 flex-1"><h1 className="truncate text-xl font-medium">{c.name}</h1><p className="text-sm"><span className={statusColor(c.status)}>{STATUS_LABEL[c.status]}</span><span className="text-muted-foreground"> · {o.label}</span></p></div>
         <Switch aria-label="Campaign active" disabled={c.status==="in_review" || c.status==="completed"} checked={c.status==="active"} onCheckedChange={v => actions.updateCampaign(c.id,{status:v?"active":"paused"})} />
       </div>
       <div className="flex gap-3 px-6 py-7"><Button variant="metaOutline" className="h-12 flex-1 text-base" onClick={() => nav({to:"/create/$objective",params:{objective:c.objective},search:{edit:c.id}})}><Pencil />Edit</Button><Button variant="metaOutline" className="h-12 flex-1 text-base" onClick={() => {const id=actions.duplicateCampaign(c.id);if(id)nav({to:"/campaign/$id",params:{id}});}}><Copy />Duplicate</Button></div>
-      <div className="space-y-4 px-6 pb-6">
-        <div className="flex items-center justify-between pt-3"><h2 className="text-2xl font-bold">Results</h2><Button variant="link" onClick={() => setExpanded(true)} className="text-base">View performance</Button></div>
+      <div className="campaign-detail-body space-y-4 px-6 pb-6">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center pt-3"><h2 className="text-2xl font-bold">Results</h2><Button variant="link" onClick={() => setExpanded(true)} className="px-0 text-sm sm:text-base">View performance</Button></div>
+        <div className="flex items-center justify-between gap-2"><p className="demo-results-note">Demo results · Simulated, not live</p><Button variant="ghost" size="icon" title="Refresh demo results" aria-label="Refresh demo results" onClick={() => actions.randomizeResults(c.id)}><RefreshCw /></Button></div>
         <Card className="meta-results">
           <div className="meta-range"><CalendarDays className="h-5 w-5" />{["30 days","Maximum","Today"].map(label=><Button key={label} variant="plain" aria-pressed={range===label} onClick={()=>setRange(label)}>{label}</Button>)}</div>
-          <div className="meta-metrics"><div><strong>{num(c.results)}</strong><span>{o.result}</span></div><div><strong>{c.results ? money(c.spent/c.results,cur) : "—"}</strong><span>Cost per result</span></div><div><strong>{money(c.spent,cur)}</strong><span>Amount spent</span></div></div>
+          <div className="meta-metrics"><div><strong>{num(metrics.results)}</strong><span>{resultLabel}</span></div><div><strong>{metrics.results ? money(metrics.spent/metrics.results,cur) : money(0,cur)}</strong><span>Cost per {resultLabel.replace(/s$/, "")}</span></div><div><strong>{money(metrics.spent,cur)}</strong><span>Amount spent</span></div></div>
           <div className="flex justify-end px-5"><Button variant="link" onClick={()=>{setBudget(String(c.budget));setBudgetOpen(true);}}>{money(c.budget,cur)} {c.budgetType} budget<Pencil className="h-3.5 w-3.5" /></Button></div>
-          <div className="mt-6 grid grid-cols-2 divide-x px-5 pb-5"><div className="pr-4"><p className="text-3xl font-bold">{num(c.reach)}</p><p className="mt-1 text-sm text-muted-foreground">Reach</p></div><div className="pl-4"><p className="text-3xl font-bold">{num(c.impressions)}</p><p className="mt-1 text-sm text-muted-foreground">Impressions</p></div></div>
+          <div className="mt-6 grid grid-cols-2 divide-x px-5 pb-5"><div className="pr-4"><p className="text-3xl font-bold">{num(metrics.reach)}</p><p className="mt-1 text-sm text-muted-foreground">Reach</p></div><div className="pl-4"><p className="text-3xl font-bold">{num(metrics.impressions)}</p><p className="mt-1 text-sm text-muted-foreground">Impressions</p></div></div>
           {expanded && <div className="grid grid-cols-2 gap-5 px-5 pb-5">{stats.slice(5).map(([label,value])=><div key={label} className="border-t pt-4"><p className="text-2xl font-bold">{value}</p><p className="mt-1 text-sm text-muted-foreground">{label}</p></div>)}</div>}
           <Button variant="plain" className="h-14 w-full border-t text-base" onClick={()=>setExpanded(v=>!v)}>{expanded?<ChevronUp />:<ChevronDown />}{expanded?"Show less":"Show more"}</Button>
         </Card>
         <div className="flex items-center justify-between pt-6"><h2 className="text-2xl font-bold">Setup</h2><Button variant="link" className="text-base" onClick={()=>nav({to:"/create/$objective",params:{objective:c.objective},search:{edit:c.id}})}>Edit setup</Button></div>
         <Card className="px-5">
+          {c.conversionLocation === "website" && <div className="flex items-start gap-4 border-b py-5"><Globe className="mt-1 h-6 w-6 shrink-0" /><div className="min-w-0"><h3 className="text-lg font-medium">Website</h3><p className="mt-1 text-sm text-muted-foreground">Objective: {o.label} · Event: {c.conversionEvent ?? "—"}</p></div></div>}
           <div className="flex items-center gap-4 py-5"><CreditCard className="h-6 w-6" /><div className="flex-1"><h3 className="text-lg font-medium">Budget</h3><p className="mt-1 text-sm text-muted-foreground">{money(c.budget,cur)} {cur} per {c.budgetType==="daily"?"day":"campaign"}. Highest volume</p></div><Button variant="ghost" size="icon" aria-label="Edit budget" onClick={()=>{setBudget(String(c.budget));setBudgetOpen(true);}}><Pencil /></Button></div>
           <div className="flex items-center gap-4 border-t py-5"><CalendarDays className="h-6 w-6" /><div className="flex-1"><h3 className="text-lg font-medium">Schedule</h3><p className="mt-1 text-sm text-muted-foreground">{c.startDate} – {c.endDate??"ongoing"}</p></div><Button variant="ghost" size="icon" aria-label="Edit schedule" onClick={()=>nav({to:"/create/$objective",params:{objective:c.objective},search:{edit:c.id}})}><Pencil /></Button></div>
           {setupExpanded && <div className="border-t py-5 text-sm"><h3 className="font-semibold">Audience</h3><p className="mt-1 text-muted-foreground">{c.audience.location} · Age {c.audience.ageMin}–{c.audience.ageMax} · {c.audience.gender}</p><h3 className="mt-4 font-semibold">Placements</h3><p className="mt-1 text-muted-foreground">{c.placements==="advantage"?"Advantage+ placements":c.platforms.join(", ")}</p></div>}

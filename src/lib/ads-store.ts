@@ -1,5 +1,6 @@
 import sneakerImage from "@/assets/campaign-sneakers.jpg";
 import { useSyncExternalStore } from "react";
+import { generateDemoMetrics } from "./ads-demo";
 
 export type ObjectiveKey = "engagement" | "awareness" | "traffic" | "leads" | "sales" | "app";
 export type CampaignStatus = "active" | "paused" | "in_review" | "completed";
@@ -20,6 +21,9 @@ export interface Campaign {
   accountId: string;
   name: string;
   objective: ObjectiveKey;
+  conversionLocation?: "website" | "messages";
+  conversionEvent?: "Subscribe" | undefined;
+  demoMetrics?: boolean;
   status: CampaignStatus;
   budgetType: "daily" | "lifetime";
   budget: number;
@@ -50,7 +54,7 @@ export const OBJECTIVES: Record<
   app: { label: "App promotion", desc: "Find new people to install your app and continue using it.", goodFor: ["App installs", "App events"], result: "App installs", color: "obj-app", emoji: "📱" },
 };
 
-export const CTAS = ["Learn more", "Shop now", "Sign up", "Send message", "Book now", "Contact us", "Download", "Get offer"];
+export const CTAS = ["Subscribe", "Learn more", "Shop now", "Sign up", "Send message", "Book now", "Contact us", "Download", "Get offer"];
 
 interface State {
   accounts: Account[];
@@ -91,7 +95,7 @@ const SEED: State = {
     { id: "4728105593016647", name: "Desert Brew Cafe", currency: "USD", funds: 120, paymentMethods: ["Mastercard •••• 8810"], spendingLimit: 1000, taxVerified: false, transactions: [] },
   ],
   campaigns: [
-    mk({ id: "120210000000000001", accountId: "1377459896562888", name: "New Traffic Campaign", objective: "engagement", status: "active", recommendations: 2 }),
+    mk({ id: "120210000000000001", accountId: "1377459896562888", name: "New Engagement Campaign", objective: "engagement", conversionLocation: "website", conversionEvent: "Subscribe", demoMetrics: true, status: "active", recommendations: 2, budget: 222.97, results: 38, spent: 429.01, impressions: 5887, reach: 4873, clicks: 246, ad: { headline: "Subscribe for more", primaryText: "Discover our latest updates.", cta: "Subscribe", url: "https://example.com", image: sneakerImage } }),
     mk({ id: "120210000000000002", accountId: "2841937750163042", name: "Diwali Sale 2026", objective: "sales", status: "active", budget: 800, results: 46, spent: 3920.5, impressions: 84210, reach: 51230, clicks: 1840, recommendations: 1, ad: { headline: "Diwali Sale – Up to 60% off", primaryText: "Celebrate in style with our festive collection.", cta: "Shop now", url: "https://churufashion.in", image: sneakerImage } }),
     mk({ id: "120210000000000003", accountId: "2841937750163042", name: "Brand Awareness – Rajasthan", objective: "awareness", status: "paused", budget: 300, results: 120400, spent: 2105, impressions: 190330, reach: 120400, clicks: 610, audience: { location: "Rajasthan, India", ageMin: 18, ageMax: 45, gender: "all", interests: "Fashion, Shopping" } }),
     mk({ id: "120210000000000004", accountId: "2841937750163042", name: "WhatsApp Inquiries", objective: "engagement", status: "active", budget: 250, results: 312, spent: 1488.2, impressions: 40211, reach: 30122, clicks: 980, recommendations: 3 }),
@@ -128,7 +132,8 @@ export function hydrateStore() {
     /* ignore */
   }
   loaded = true;
-  listeners.forEach((l) => l());
+  state = { ...state, campaigns: state.campaigns.map(c => c.id === "120210000000000001" ? { ...c, name: c.name === "New Traffic Campaign" ? "New Engagement Campaign" : c.name, objective: "engagement", conversionLocation: "website", conversionEvent: "Subscribe", ad: { ...c.ad, cta: "Subscribe" }, demoMetrics: true, ...generateDemoMetrics() } : c) };
+  emit();
 }
 
 export function useAds<T>(sel: (s: State) => T): T {
@@ -172,6 +177,7 @@ export const actions = {
   },
   updateCampaign: (id: string, patch: Partial<Campaign>) =>
     set((s) => ({ ...s, campaigns: s.campaigns.map((c) => (c.id === id ? { ...c, ...patch } : c)) })),
+  randomizeResults: (id: string) => set(s => ({ ...s, campaigns: s.campaigns.map(c => c.id === id ? { ...c, ...generateDemoMetrics(), demoMetrics: true } : c) })),
   duplicateCampaign: (id: string) => {
     const src = state.campaigns.find((c) => c.id === id);
     if (!src) return;

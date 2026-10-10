@@ -10,6 +10,8 @@ import { Card, Frame } from "@/components/ads/Shell";
 import { AdPreview } from "@/components/ads/AdPreview";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DuplicateSheet } from "@/components/ads/DuplicateSheet";
+import { Notifications } from "@/components/ads/Notifications";
+import { DEMO_NOTIFICATIONS } from "@/lib/ads-demo";
 import { actions, money, num, OBJECTIVES, STATUS_LABEL, useAds, useCurrentAccount, type CampaignStatus } from "@/lib/ads-store";
 
 export const Route = createFileRoute("/")({
@@ -41,6 +43,9 @@ function Home() {
   const [createOpen, setCreateOpen] = useState(false);
   const [dupOpen, setDupOpen] = useState(false);
   const [preview, setPreview] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [readNotifications, setReadNotifications] = useState<string[]>([]);
+  const unread = DEMO_NOTIFICATIONS.length - readNotifications.length;
   const factor = DATES[date][1];
 
   const mine = all.filter((c) => c.accountId === acct.id);
@@ -57,21 +62,21 @@ function Home() {
       <header className="meta-account-header">
         <Link to="/billing" aria-label="Settings" className="flex h-12 w-12 items-center justify-center rounded-full border bg-card"><Settings className="h-5 w-5" /></Link>
         <Link to="/accounts" className="min-w-0 flex-1">
-          <p className="flex items-center justify-between gap-1 text-2xl font-bold">{acct.name}<ChevronDown className="h-5 w-5 shrink-0" /></p>
+          <p className="flex min-w-0 items-center justify-between gap-1 text-2xl font-bold"><span className="truncate">{acct.name}</span><ChevronDown className="h-5 w-5 shrink-0" /></p>
           <p className="flex items-center gap-1 text-xs text-muted-foreground"><span className="h-1.5 w-1.5 rounded-full bg-success" />{activeCount} active campaign{activeCount === 1 ? "" : "s"}</p>
         </Link>
-        <Button variant="plain" aria-label="Notifications" onClick={() => toast("No new notifications")} className="p-2"><Bell className="h-6 w-6" /></Button>
+        <Button variant="plain" size="icon" aria-label={`Notifications, ${unread} unread`} onClick={() => setNotificationsOpen(true)} className="relative h-11 w-9 shrink-0 p-0 [&_svg]:size-6"><Bell />{unread > 0 && <span className="absolute -right-0.5 top-0 grid h-4 w-4 place-items-center rounded-full bg-destructive text-[10px] font-semibold text-destructive-foreground">{unread}</span>}</Button>
         <Button variant="create" aria-label="Create" onClick={() => setCreateOpen(true)} className="h-12 w-12 shrink-0 [&_svg]:size-7"><Plus className="h-6 w-6" /></Button>
       </header>
 
       <div className="meta-filter-bar">
         <Button variant="plain" aria-label="Reset filters" onClick={() => { setStatus("all"); setDate("max"); setQ(""); }} className="rounded-md border bg-card px-3 py-2"><Filter className="h-4 w-4" /></Button>
         <DropdownMenu>
-          <DropdownMenuTrigger className="flex items-center gap-1 rounded-md border bg-card px-3 py-2 text-sm font-medium">{date === "max" ? "Date" : DATES[date][0]}<ChevronDown className="h-4 w-4" /></DropdownMenuTrigger>
+          <DropdownMenuTrigger asChild><Button variant="metaOutline"><span className="truncate">{date === "max" ? "Date" : DATES[date][0]}</span><ChevronDown className="h-4 w-4" /></Button></DropdownMenuTrigger>
           <DropdownMenuContent>{(Object.keys(DATES) as DateKey[]).map((k) => <DropdownMenuItem key={k} onClick={() => setDate(k)}>{DATES[k][0]}</DropdownMenuItem>)}</DropdownMenuContent>
         </DropdownMenu>
         <DropdownMenu>
-          <DropdownMenuTrigger className="flex items-center gap-1 rounded-md border bg-card px-3 py-2 text-sm font-medium">{status === "all" ? "Status" : STATUS_LABEL[status]}<ChevronDown className="h-4 w-4" /></DropdownMenuTrigger>
+          <DropdownMenuTrigger asChild><Button variant="metaOutline"><span className="truncate">{status === "all" ? "Status" : STATUS_LABEL[status]}</span><ChevronDown className="h-4 w-4" /></Button></DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem onClick={() => setStatus("all")}>All</DropdownMenuItem>
             {(Object.keys(STATUS_LABEL) as CampaignStatus[]).map((k) => <DropdownMenuItem key={k} onClick={() => setStatus(k)}>{STATUS_LABEL[k]}</DropdownMenuItem>)}
@@ -84,7 +89,7 @@ function Home() {
         <h2 className="mt-3 max-w-2xl text-xl font-bold leading-snug">Explore more Advantage+ creative enhancements</h2>
         <p className="mt-3 text-base">Potential outcome: <span className="font-semibold text-tint">More ways to connect with your audience</span></p>
         <p className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">Creative recommendation <Info className="h-3.5 w-3.5" /></p>
-        <div className="mt-4 flex items-center gap-3 border-t pt-4">{recommended.ad.image && <img src={recommended.ad.image} className="h-8 w-8 rounded object-cover" alt="Recommended ad" />}<span>{recommended.name}</span></div>
+        <div className="mt-4 flex min-w-0 items-center gap-3 border-t pt-4">{recommended.ad.image && <img src={recommended.ad.image} className="h-8 w-8 shrink-0 rounded object-cover" alt="Recommended ad" />}<span className="min-w-0 truncate">{recommended.name}</span></div>
         <div className="mt-4 flex gap-3"><Button variant="metaOutline" className="h-11 flex-1 text-base" onClick={() => setPreview(true)}>Preview</Button><Button variant="meta" className="h-11 flex-[1.5] text-base" onClick={() => nav({ to: "/recommendations" })}>Review now</Button></div>
       </Card>}
       <div className="meta-section-title">
@@ -100,7 +105,8 @@ function Home() {
         </div>
       )}
 
-      <div className={table ? "px-7 pb-6" : "campaign-grid"}>
+      <p className="demo-results-note px-4 pb-3 sm:px-7">Demo results · Simulated numbers, not live Meta data</p>
+      <div className={table ? "px-4 pb-6 sm:px-7" : "campaign-grid"}>
         {list.length === 0 && (
           <Card className="p-6 text-center">
             <p className="font-medium">No campaigns found</p>
@@ -138,6 +144,7 @@ function Home() {
         </SheetContent>
       </Sheet>
       <DuplicateSheet open={dupOpen} onOpenChange={setDupOpen} />
+      <Notifications open={notificationsOpen} onOpenChange={setNotificationsOpen} read={readNotifications} onRead={setReadNotifications} campaignId={mine[0]?.id} />
     </Frame>
   );
 }

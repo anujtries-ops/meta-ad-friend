@@ -39,6 +39,7 @@ function Builder() {
     accountId: acct.id,
     name: `New ${OBJECTIVES[obj].label} Campaign`,
     objective: obj,
+    ...(obj === "engagement" ? { conversionLocation: "website" as const, conversionEvent: "Subscribe" as const } : {}),
     budgetType: "daily",
     budget: acct.currency === "INR" ? 200 : 5,
     startDate: today,
@@ -46,7 +47,7 @@ function Builder() {
     audience: { location: "India", ageMin: 18, ageMax: 65, gender: "all", interests: "" },
     placements: "advantage",
     platforms: ["Facebook", "Instagram", "Messenger"],
-    ad: { headline: "", primaryText: "", cta: "Learn more", url: "https://", image: "" },
+    ad: { headline: "", primaryText: "", cta: obj === "engagement" ? "Subscribe" : "Learn more", url: "https://", image: "" },
   });
   const up = (p: Partial<Campaign>) => setF((x) => ({ ...x, ...p }));
   const aud = (p: Partial<Campaign["audience"]>) => setF((x) => ({ ...x, audience: { ...x.audience, ...p } }));
@@ -97,6 +98,10 @@ function Builder() {
           <Card className="space-y-4 p-4">
             <div className="flex items-center gap-3"><ObjectiveIcon k={obj} /><div><p className="font-medium">{OBJECTIVES[obj].label}</p><p className="text-xs text-muted-foreground">{OBJECTIVES[obj].desc}</p></div></div>
             <label className={label}>Campaign name<input className={input} value={f.name} onChange={(e) => up({ name: e.target.value })} /></label>
+            {obj === "engagement" && <>
+              <label className={label}>Conversion location<select className={input} value={f.conversionLocation ?? "messages"} onChange={e => up({ conversionLocation: e.target.value === "website" ? "website" : "messages", conversionEvent: e.target.value === "website" ? "Subscribe" : undefined })}><option value="website">Website</option><option value="messages">Messaging apps</option></select></label>
+              {f.conversionLocation === "website" && <label className={label}>Conversion event<select className={input} value={f.conversionEvent ?? "Subscribe"} onChange={() => up({ conversionEvent: "Subscribe" })}><option value="Subscribe">Subscribe</option></select></label>}
+            </>}
             <p className="text-sm text-muted-foreground">Ad account: <b className="text-foreground">{acct.name}</b> ({acct.id})</p>
           </Card>
         )}
@@ -155,6 +160,7 @@ function Builder() {
             {[
               ["Campaign", f.name],
               ["Objective", OBJECTIVES[obj].label],
+              ...(f.conversionLocation === "website" ? [["Conversion location", "Website"], ["Conversion event", f.conversionEvent ?? "Subscribe"]] : []),
               ["Budget", `${money(f.budget, acct.currency)} ${f.budgetType}`],
               ["Schedule", `${f.startDate} → ${f.endDate ?? "Ongoing"}`],
               ["Audience", `${f.audience.location}, ${f.audience.ageMin}–${f.audience.ageMax}, ${f.audience.gender}`],
@@ -171,8 +177,8 @@ function Builder() {
       <div className="fixed bottom-0 left-1/2 z-30 flex w-full max-w-[1120px] -translate-x-1/2 gap-2 border-t bg-card p-3">
         {step > 0 && <Button variant="plain" onClick={() => setStep(step - 1)} className="flex-1 rounded-md bg-secondary py-2.5 font-medium">Back</Button>}
         {step < STEPS.length - 1
-          ? <Button variant="plain" onClick={() => setStep(step + 1)} className="flex-1 rounded-md bg-primary py-2.5 font-medium text-primary-foreground">Next</Button>
-          : <Button variant="plain" onClick={publish} className="flex-1 rounded-md bg-primary py-2.5 font-medium text-primary-foreground">{existing ? "Publish changes" : "Publish"}</Button>}
+           ? <Button variant="meta" onClick={() => setStep(step + 1)} className="flex-1">Next</Button>
+           : <Button variant="meta" onClick={publish} className="flex-1">{existing ? "Publish changes" : "Publish"}</Button>}
       </div>
     </Frame>
   );

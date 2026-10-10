@@ -12,3 +12,4 @@
 - Preserve the imported playbook's TanStack file routes and shared ads modules so existing campaign and account flows remain compatible.
 - Keep this visual continuation a local demo; funding and campaign actions must not imply real payment processing or live Meta delivery.
 - Use shared semantic style tokens and Button variants for Meta-inspired presentation so controls remain consistent.
+- Keep simulated notifications, result labels, and metric generation in the browser-safe shared ads demo module so list and detail views remain consistent without claiming live delivery.

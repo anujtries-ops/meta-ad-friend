@@ -21,7 +21,7 @@ export const Route = createFileRoute("/recommendations")({
 
 const TIPS: { title: string; body: string; apply: (c: Campaign) => Partial<Campaign> }[] = [
   { title: "Use Advantage+ placements", body: "Expand where your ads are shown to get more results at a lower cost.", apply: () => ({ placements: "advantage" }) },
-  { title: "Increase your budget by 20%", body: "Your campaign may be limited by budget. A higher budget could get more results.", apply: (c) => ({ budget: Math.round(c.budget * 1.2) }) },
+  { title: "Review your ad creative", body: "Explore your ad preview and consider a clear headline and a relevant image.", apply: () => ({}) },
   { title: "Broaden your audience", body: "Expanding the age range can help the delivery system find more people.", apply: (c) => ({ audience: { ...c.audience, ageMin: 18, ageMax: 65 } }) },
 ];
 

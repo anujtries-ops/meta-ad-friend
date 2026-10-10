@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Copy, Pencil, Trash2 } from "lucide-react";
+import { Copy, Pencil, Trash2, ArrowLeft, MoreVertical, CalendarDays, ChevronDown, ChevronUp, CreditCard } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
@@ -31,6 +31,9 @@ function Detail() {
   const nav = useNavigate();
   const [budgetOpen, setBudgetOpen] = useState(false);
   const [budget, setBudget] = useState("");
+  const [expanded, setExpanded] = useState(false);
+  const [setupExpanded, setSetupExpanded] = useState(false);
+  const [range, setRange] = useState("Maximum");
   const ready = useStoreReady();
 
   if (!ready && !c) return <Frame><PageHeader title="Campaign" /></Frame>;
@@ -55,40 +58,30 @@ function Detail() {
 
   return (
     <Frame>
-      <PageHeader title="Campaign" right={<Button variant="plain" aria-label="Edit" onClick={() => nav({ to: "/create/$objective", params: { objective: c.objective }, search: { edit: c.id } })} className="p-1.5"><Pencil className="h-5 w-5" /></Button>} />
-      <div className="space-y-3 p-4">
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <ObjectiveIcon k={c.objective} />
-            <div className="min-w-0 flex-1"><p className="truncate text-lg font-medium">{c.name}</p><p className="text-sm"><span className={statusColor(c.status)}>{STATUS_LABEL[c.status]}</span><span className="text-muted-foreground"> • {o.label}</span></p></div>
-            <Switch disabled={c.status === "completed" || c.status === "in_review"} checked={c.status === "active" || c.status === "in_review"} onCheckedChange={(v) => { actions.updateCampaign(c.id, { status: v ? "active" : "paused" }); toast.success(v ? "Campaign turned on" : "Campaign turned off"); }} />
-          </div>
-          <p className="mt-2 text-xs text-muted-foreground">Campaign ID: {c.id} · Created {c.createdAt}</p>
-          {c.status === "in_review" && <p className="mt-2 rounded-md bg-muted p-2 text-sm">Your ad is being reviewed. Most ads are reviewed within 24 hours.</p>}
-          {c.status !== "paused" && acct.paymentMethods.length === 0 && acct.funds <= 0 && (
-            <Link to="/billing" className="mt-2 block rounded-md border border-destructive p-2 text-sm text-destructive">No payment method — add one so this campaign can deliver.</Link>
-          )}
+      <div className="flex items-center gap-3 px-5 pt-7">
+        <Button variant="ghost" size="icon" aria-label="Back to campaigns" onClick={() => nav({to:"/"})}><ArrowLeft /></Button>
+        <div className="relative shrink-0">{c.ad.image ? <img src={c.ad.image} alt={`${c.name} creative`} className="campaign-thumb" /> : <ObjectiveIcon k={c.objective} />}<span className={`absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-[3px] border-background ${c.status==="active"?"bg-success":"bg-muted-foreground"}`} /></div>
+        <div className="min-w-0 flex-1"><h1 className="truncate text-xl font-medium">{c.name}</h1><p className="text-sm"><span className={statusColor(c.status)}>{STATUS_LABEL[c.status]}</span><span className="text-muted-foreground"> · {o.label}</span></p></div>
+        <Switch aria-label="Campaign active" disabled={c.status==="in_review" || c.status==="completed"} checked={c.status==="active"} onCheckedChange={v => actions.updateCampaign(c.id,{status:v?"active":"paused"})} />
+      </div>
+      <div className="flex gap-3 px-6 py-7"><Button variant="metaOutline" className="h-12 flex-1 text-base" onClick={() => nav({to:"/create/$objective",params:{objective:c.objective},search:{edit:c.id}})}><Pencil />Edit</Button><Button variant="metaOutline" className="h-12 flex-1 text-base" onClick={() => {const id=actions.duplicateCampaign(c.id);if(id)nav({to:"/campaign/$id",params:{id}});}}><Copy />Duplicate</Button></div>
+      <div className="space-y-4 px-6 pb-6">
+        <div className="flex items-center justify-between pt-3"><h2 className="text-2xl font-bold">Results</h2><Button variant="link" onClick={() => setExpanded(true)} className="text-base">View performance</Button></div>
+        <Card className="meta-results">
+          <div className="meta-range"><CalendarDays className="h-5 w-5" />{["30 days","Maximum","Today"].map(label=><Button key={label} variant="plain" aria-pressed={range===label} onClick={()=>setRange(label)}>{label}</Button>)}</div>
+          <div className="meta-metrics"><div><strong>{num(c.results)}</strong><span>{o.result}</span></div><div><strong>{c.results ? money(c.spent/c.results,cur) : "—"}</strong><span>Cost per result</span></div><div><strong>{money(c.spent,cur)}</strong><span>Amount spent</span></div></div>
+          <div className="flex justify-end px-5"><Button variant="link" onClick={()=>{setBudget(String(c.budget));setBudgetOpen(true);}}>{money(c.budget,cur)} {c.budgetType} budget<Pencil className="h-3.5 w-3.5" /></Button></div>
+          <div className="mt-6 grid grid-cols-2 divide-x px-5 pb-5"><div className="pr-4"><p className="text-3xl font-bold">{num(c.reach)}</p><p className="mt-1 text-sm text-muted-foreground">Reach</p></div><div className="pl-4"><p className="text-3xl font-bold">{num(c.impressions)}</p><p className="mt-1 text-sm text-muted-foreground">Impressions</p></div></div>
+          {expanded && <div className="grid grid-cols-2 gap-5 px-5 pb-5">{stats.slice(5).map(([label,value])=><div key={label} className="border-t pt-4"><p className="text-2xl font-bold">{value}</p><p className="mt-1 text-sm text-muted-foreground">{label}</p></div>)}</div>}
+          <Button variant="plain" className="h-14 w-full border-t text-base" onClick={()=>setExpanded(v=>!v)}>{expanded?<ChevronUp />:<ChevronDown />}{expanded?"Show less":"Show more"}</Button>
         </Card>
-
-        <Card className="grid grid-cols-3 gap-y-4 p-4">
-          {stats.map(([k, v]) => <div key={k}><p className="font-medium">{v}</p><p className="text-xs text-muted-foreground leading-tight">{k}</p></div>)}
+        <div className="flex items-center justify-between pt-6"><h2 className="text-2xl font-bold">Setup</h2><Button variant="link" className="text-base" onClick={()=>nav({to:"/create/$objective",params:{objective:c.objective},search:{edit:c.id}})}>Edit setup</Button></div>
+        <Card className="px-5">
+          <div className="flex items-center gap-4 py-5"><CreditCard className="h-6 w-6" /><div className="flex-1"><h3 className="text-lg font-medium">Budget</h3><p className="mt-1 text-sm text-muted-foreground">{money(c.budget,cur)} {cur} per {c.budgetType==="daily"?"day":"campaign"}. Highest volume</p></div><Button variant="ghost" size="icon" aria-label="Edit budget" onClick={()=>{setBudget(String(c.budget));setBudgetOpen(true);}}><Pencil /></Button></div>
+          <div className="flex items-center gap-4 border-t py-5"><CalendarDays className="h-6 w-6" /><div className="flex-1"><h3 className="text-lg font-medium">Schedule</h3><p className="mt-1 text-sm text-muted-foreground">{c.startDate} – {c.endDate??"ongoing"}</p></div><Button variant="ghost" size="icon" aria-label="Edit schedule" onClick={()=>nav({to:"/create/$objective",params:{objective:c.objective},search:{edit:c.id}})}><Pencil /></Button></div>
+          {setupExpanded && <div className="border-t py-5 text-sm"><h3 className="font-semibold">Audience</h3><p className="mt-1 text-muted-foreground">{c.audience.location} · Age {c.audience.ageMin}–{c.audience.ageMax} · {c.audience.gender}</p><h3 className="mt-4 font-semibold">Placements</h3><p className="mt-1 text-muted-foreground">{c.placements==="advantage"?"Advantage+ placements":c.platforms.join(", ")}</p></div>}
+          <Button variant="plain" className="h-14 w-full border-t text-base" onClick={()=>setSetupExpanded(v=>!v)}>{setupExpanded?<ChevronUp />:<ChevronDown />}{setupExpanded?"Show less":"Show more"}</Button>
         </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between"><p className="font-bold">Budget & schedule</p><Button variant="plain" onClick={() => { setBudget(String(c.budget)); setBudgetOpen(true); }} className="text-sm font-medium text-primary">Edit</Button></div>
-          <p className="mt-1 text-sm">{money(c.budget, cur)} {c.budgetType === "daily" ? "per day" : "lifetime"}</p>
-          {pct !== null && <div className="mt-2 h-2 rounded-full bg-muted"><div className="h-2 rounded-full bg-primary" style={{ width: `${pct}%` }} /></div>}
-          <p className="text-sm text-muted-foreground">{c.startDate} → {c.endDate ?? "Ongoing"}</p>
-        </Card>
-
-        <Card className="p-4 text-sm">
-          <p className="font-bold">Audience</p>
-          <p>{c.audience.location} · Age {c.audience.ageMin}–{c.audience.ageMax}{c.audience.ageMax === 65 ? "+" : ""} · {c.audience.gender === "all" ? "All genders" : c.audience.gender}</p>
-          {c.audience.interests && <p className="text-muted-foreground">Interests: {c.audience.interests}</p>}
-          <p className="mt-3 font-bold">Placements</p>
-          <p>{c.placements === "advantage" ? "Advantage+ placements" : c.platforms.join(", ")}</p>
-        </Card>
-
         <AdPreview name={acct.name} ad={c.ad} />
 
         <div className="flex gap-2">

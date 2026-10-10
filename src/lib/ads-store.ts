@@ -142,7 +142,11 @@ export function useAds<T>(sel: (s: State) => T): T {
   );
 }
 
-export const useCurrentAccount = () => useAds((s) => (s.accounts.find((a) => a.id === s.selectedAccountId) ?? SEED.accounts[0]));
+export const useCurrentAccount = (): Account => useAds((s) => {
+  const account = s.accounts.find((a) => a.id === s.selectedAccountId) ?? SEED.accounts[0];
+  if (!account) throw new Error("No ad account is available");
+  return account;
+});
 
 export const actions = {
   selectAccount: (id: string) => set((s) => ({ ...s, selectedAccountId: id })),

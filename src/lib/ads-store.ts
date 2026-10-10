@@ -22,7 +22,7 @@ export interface Campaign {
   name: string;
   objective: ObjectiveKey;
   conversionLocation?: "website" | "messages";
-  conversionEvent?: "Subscribe";
+  conversionEvent?: "Subscribe" | undefined;
   demoMetrics?: boolean;
   status: CampaignStatus;
   budgetType: "daily" | "lifetime";

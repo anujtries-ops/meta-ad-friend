@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { DEMO_NOTIFICATIONS } from "@/lib/ads-demo";
 
-export function Notifications({ open, onOpenChange, read, onRead, campaignId }: { open: boolean; onOpenChange: (open: boolean) => void; read: string[]; onRead: (ids: string[]) => void; campaignId?: string }) {
+export function Notifications({ open, onOpenChange, read, onRead, campaignId }: { open: boolean; onOpenChange: (open: boolean) => void; read: string[]; onRead: (ids: string[]) => void; campaignId?: string | undefined }) {
   return <Sheet open={open} onOpenChange={onOpenChange}>
     <SheetContent side="right" className="w-full max-w-md overflow-y-auto bg-card p-0 sm:max-w-md">
       <SheetHeader className="border-b px-5 py-6 pr-12"><SheetTitle>Notifications</SheetTitle><SheetDescription>4 sample notifications · Demo account</SheetDescription></SheetHeader>

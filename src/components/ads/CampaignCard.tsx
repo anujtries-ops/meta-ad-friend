@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ChevronRight, Lightbulb, MoreVertical } from "lucide-react";
+import { ChevronRight, Lightbulb, MoreVertical, BadgePlus } from "lucide-react";
 import { toast } from "sonner";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { actions, money, num, OBJECTIVES, STATUS_LABEL, type Campaign } from "@/lib/ads-store";
@@ -16,14 +16,15 @@ export function CampaignCard({ c, currency, factor }: { c: Campaign; currency: "
   const spent = c.spent * factor;
   const cpr = results ? spent / results : 0;
   return (
-    <Card className="p-3">
+    <Card className="p-5">
+      <div className="mb-3 flex items-center gap-1 text-xs font-semibold"><BadgePlus className="h-3.5 w-3.5" />New</div>
       <div className="flex items-start gap-3">
         <div className="relative">
-          <ObjectiveIcon k={c.objective} />
+          {c.ad.image ? <img src={c.ad.image} alt={`${c.name} creative`} className="campaign-thumb" /> : <ObjectiveIcon k={c.objective} />}
           <span className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-card ${statusDot(c.status)}`} />
         </div>
         <Link to="/campaign/$id" params={{ id: c.id }} className="min-w-0 flex-1">
-          <p className="truncate font-medium">{c.name}</p>
+          <p className="truncate text-lg font-medium">{c.name}</p>
           <p className="text-sm"><span className={statusColor(c.status)}>{STATUS_LABEL[c.status]}</span><span className="text-muted-foreground"> • {OBJECTIVES[c.objective].label}</span></p>
         </Link>
         <DropdownMenu>
@@ -43,9 +44,9 @@ export function CampaignCard({ c, currency, factor }: { c: Campaign; currency: "
         </DropdownMenu>
       </div>
       <div className="mt-3 grid grid-cols-3 divide-x text-sm">
-        <div className="pr-2"><p className="text-base font-medium">{num(results)}</p><p className="text-muted-foreground leading-tight">{OBJECTIVES[c.objective].result}</p></div>
-        <div className="px-2"><p className="text-base font-medium">{money(cpr, currency)}</p><p className="text-muted-foreground leading-tight">Cost per {OBJECTIVES[c.objective].result.replace(/s$/, "")}</p></div>
-        <div className="pl-2"><p className="text-base font-medium">{money(spent, currency)}</p><p className="text-muted-foreground">Spent</p></div>
+        <div className="pr-2"><p className="text-xl font-semibold">{num(results)}</p><p className="text-muted-foreground leading-tight">{OBJECTIVES[c.objective].result}</p></div>
+        <div className="px-2"><p className="text-xl font-semibold">{money(cpr, currency)}</p><p className="text-muted-foreground leading-tight">Cost per {OBJECTIVES[c.objective].result.replace(/s$/, "")}</p></div>
+        <div className="pl-2"><p className="text-xl font-semibold">{money(spent, currency)}</p><p className="text-muted-foreground">Spent</p></div>
       </div>
       {c.recommendations > 0 && (
         <Link to="/recommendations" className="mt-3 flex items-center gap-2 rounded-md bg-accent px-3 py-2 text-sm font-medium text-accent-foreground">

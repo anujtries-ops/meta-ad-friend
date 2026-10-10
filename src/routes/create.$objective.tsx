@@ -149,6 +149,8 @@ function Builder() {
           </>
         )}
         {step === 5 && (
+          <>
+          <div className="flex items-center gap-3">{f.ad.image && <img src={f.ad.image} alt="Campaign thumbnail preview" className="campaign-thumb" />}<span className="text-lg font-medium">{f.name}</span></div>
           <Card className="divide-y p-0 text-sm">
             {[
               ["Campaign", f.name],
@@ -161,10 +163,12 @@ function Builder() {
             ].map(([k, v]) => <div key={k} className="flex justify-between gap-4 p-3"><span className="text-muted-foreground">{k}</span><span className="text-right font-medium">{v}</span></div>)}
             {errors.length > 0 && <ul className="space-y-1 p-3 text-destructive">{errors.map((e) => <li key={e}>• {e}</li>)}</ul>}
           </Card>
+          <AdPreview name={acct.name} ad={f.ad} />
+          </>
         )}
       </div>
 
-      <div className="fixed bottom-0 left-1/2 z-30 flex w-full max-w-md -translate-x-1/2 gap-2 border-t bg-card p-3">
+      <div className="fixed bottom-0 left-1/2 z-30 flex w-full max-w-[1120px] -translate-x-1/2 gap-2 border-t bg-card p-3">
         {step > 0 && <Button variant="plain" onClick={() => setStep(step - 1)} className="flex-1 rounded-md bg-secondary py-2.5 font-medium">Back</Button>}
         {step < STEPS.length - 1
           ? <Button variant="plain" onClick={() => setStep(step + 1)} className="flex-1 rounded-md bg-primary py-2.5 font-medium text-primary-foreground">Next</Button>
